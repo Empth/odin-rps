@@ -13,16 +13,17 @@ let getHumanChoice = () => prompt("Choose \"rock\", \"paper\", or \"scissors\"")
 
 let humanScore = 0;
 let computerScore = 0;
+let gameCount = 0; // counts the round number
 
 function playRound(humanChoice, computerChoice) {
-    // returns "tie" or "nontie"
     humanChoice = humanChoice.toLowerCase();
     computerChoice = computerChoice.toLowerCase();
-    console.log("Computer chose "+computerChoice+".");
+    gameCount++;
+    let cpuMessage = "CPU chooses "+computerChoice+".";
 
     if (humanChoice === computerChoice) {
-        console.log("Tied round! You both chose " + humanChoice + ".");
-        return "tie";
+        logMessage(cpuMessage + "Tied round! You both chose " + humanChoice + ".");
+        return;
     }
 
     // KEY -> VAL means KEY beats VAL, a literal rps map
@@ -31,33 +32,42 @@ function playRound(humanChoice, computerChoice) {
     let playerWin = (map.get(humanChoice) === computerChoice);
 
     if (playerWin) {
-        console.log("You won this round! As "+humanChoice+ " beats "+computerChoice+".");
+        logMessage(cpuMessage + "You won this round! As "+humanChoice+ " beats "+computerChoice+".");
         humanScore++;
     } else {
-        console.log("You lost this round! As "+computerChoice+ " beats "+humanChoice+".");
+        logMessage(cpuMessage + "You lost this round! As "+computerChoice+ " beats "+humanChoice+".");
         computerScore++;
     }
-    return "nontie";
+    return;
 }
 
-function playGame() {
-    console.log("Let's play Rock, Paper, Scissors, best of 5!")
-    let humanSelection, computerSelection, tieStatus;
-    let gameCount = 0; // doesn't increment on ties
-    while (gameCount < 5 && humanScore < 3 && computerScore < 3) {
-        console.log("This is round "+(gameCount+1)+" and the score count is Human: "
-        +humanScore+' - CPU: '+computerScore+".")
-        humanSelection = getHumanChoice();
-        computerSelection = getComputerChoice();
-        tieStatus = playRound(humanSelection, computerSelection);
-        if (tieStatus === "nontie") {
-            gameCount++;
-        }
+function logMessage(text) {
+    // Adds messages as <p> paragraphs to the log
+    const log = document.querySelector(".result");
+    const message = document.createElement("p");
+    message.textContent = text;
+    log.appendChild(message);
+}
+
+function makeMoveAndMessage() {
+    // event function on rps button click. Returns "done" if game is finished.
+    let humanChoice = this.className; // this is the button that accessed this callback 
+    playRound(humanChoice, getComputerChoice());
+    if (humanScore == 5 || computerScore == 5) {
+        console.assert(humanScore != computerScore);
+        winnerMessage = (humanScore > computerScore) ? "You win!" : "The CPU wins!";
+        logMessage("The game has finished and the score count is Human: "
+        +humanScore+' - CPU: '+computerScore+". "+winnerMessage);
+        moveList.forEach(move => move.removeEventListener("click", makeMoveAndMessage));
+        return;
     }
-    console.assert(humanScore != computerScore);
-    winnerMessage = (humanScore > computerScore) ? "You win!" : "The CPU wins!"
-    console.log("The game has finished and the score count is Human: "
-        +humanScore+' - CPU: '+computerScore+". "+winnerMessage)
+    logMessage("This is round "+(gameCount+1)+" and the score count is Human: "
+    +humanScore+' - CPU: '+computerScore+".");
 }
 
-playGame();
+
+logMessage("Let's play Rock, Paper, Scissors, best of 5!");
+logMessage("This is round 1 and the score count is Human: 0 - CPU: 0");
+
+let moveList = [...document.querySelectorAll("button")]; // rock, paper, scissor move buttons
+moveList.forEach(move => move.addEventListener("click", makeMoveAndMessage));
